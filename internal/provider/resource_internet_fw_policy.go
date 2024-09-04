@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -29,8 +30,8 @@ type internetFwPolicyResource struct {
 }
 
 type InternetFirewall_Policy_Audit struct {
-	PublishedTime types.String `tfsdk:"publishedtime"`
-	PublishedBy   types.String `tfsdk:"publishedby"`
+	PublishedTime types.String `tfsdk:"published_time"`
+	PublishedBy   types.String `tfsdk:"published_by"`
 }
 
 type InternetFirewall_Policy_Revision struct {
@@ -38,8 +39,8 @@ type InternetFirewall_Policy_Revision struct {
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 	Changes     types.Int64  `tfsdk:"changes"`
-	CreatedTime types.String `tfsdk:"createdtime"`
-	UpdatedTime types.String `tfsdk:"updatedtime"`
+	CreatedTime types.String `tfsdk:"created_time"`
+	UpdatedTime types.String `tfsdk:"updated_time"`
 }
 
 type InternetFirewallAddRuleInput struct {
@@ -51,8 +52,6 @@ type InternetFirewallAddRuleInput struct {
 type InternetFirewallCreateRuleInput struct {
 	Rule types.Object `tfsdk:"rule"` //Policy_Policy_InternetFirewall_Policy_Rules_Rule
 	At   types.Object `tfsdk:"at"`   //*PolicyRulePositionInput
-	// Publish types.Bool   `tfsdk:"publish"` TO BE REMOVED
-	// ID types.String `tfsdk:"id"`
 }
 
 type PolicyRulePositionInput struct {
@@ -69,8 +68,8 @@ type InternetFirewall_Policy_Rules struct {
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Audit struct {
-	UpdatedTime types.String `tfsdk:"updatedtime"`
-	UpdatedBy   types.String `tfsdk:"updatedby"`
+	UpdatedTime types.String `tfsdk:"updated_time"`
+	UpdatedBy   types.String `tfsdk:"updated_by"`
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule struct {
@@ -79,11 +78,11 @@ type Policy_Policy_InternetFirewall_Policy_Rules_Rule struct {
 	Description      types.String `tfsdk:"description"`
 	Enabled          types.Bool   `tfsdk:"enabled"`
 	Source           types.Object `tfsdk:"source"` //Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source
-	ConnectionOrigin types.String `tfsdk:"connectionorigin"`
+	ConnectionOrigin types.String `tfsdk:"connection_origin"`
 	Country          types.List   `tfsdk:"country"` //[]Policy_Policy_InternetFirewall_Policy_Rules_Rule_Country
 	Device           types.List   `tfsdk:"device"`  //[]Policy_Policy_InternetFirewall_Policy_Rules_Rule_Device
 	// needs to be enum OperatingSystem
-	DeviceOs    types.List   `tfsdk:"deviceos"`
+	DeviceOs    types.List   `tfsdk:"device_os"`
 	Destination types.Object `tfsdk:"destination"` //Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination
 	Service     types.Object `tfsdk:"service"`     //Policy_Policy_InternetFirewall_Policy_Rules_Rule_Service
 	// needs to be enum InternetFirewallActionEnum
@@ -104,19 +103,19 @@ type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Device struct {
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination struct {
-	Application            types.List `tfsdk:"application"`            //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_Application
-	CustomApp              types.List `tfsdk:"customapp"`              //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_CustomApp
-	AppCategory            types.List `tfsdk:"appcategory"`            //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_AppCategory
-	CustomCategory         types.List `tfsdk:"customcategory"`         //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_CustomCategory
-	SanctionedAppsCategory types.List `tfsdk:"sanctionedappscategory"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_SanctionedAppsCategory
-	Country                types.List `tfsdk:"country"`                //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_Country
+	Application            types.List `tfsdk:"application"`              //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_Application
+	CustomApp              types.List `tfsdk:"custom_app"`               //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_CustomApp
+	AppCategory            types.List `tfsdk:"app_category"`             //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_AppCategory
+	CustomCategory         types.List `tfsdk:"custom_category"`          //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_CustomCategory
+	SanctionedAppsCategory types.List `tfsdk:"sanctioned_apps_category"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_SanctionedAppsCategory
+	Country                types.List `tfsdk:"country"`                  //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_Country
 	Domain                 types.List `tfsdk:"domain"`
 	Fqdn                   types.List `tfsdk:"fqdn"`
 	IP                     types.List `tfsdk:"ip"`
 	Subnet                 types.List `tfsdk:"subnet"`
-	IPRange                types.List `tfsdk:"iprange"`       //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_IPRange
-	GlobalIPRange          types.List `tfsdk:"globaliprange"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_GlobalIPRange
-	RemoteAsn              types.List `tfsdk:"remoteasn"`
+	IPRange                types.List `tfsdk:"ip_range"`        //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_IPRange
+	GlobalIPRange          types.List `tfsdk:"global_ip_range"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_GlobalIPRange
+	RemoteAsn              types.List `tfsdk:"remote_asn"`
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Destination_Application struct {
@@ -164,15 +163,15 @@ type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source struct {
 	Host              types.List `tfsdk:"host"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_Host
 	Site              types.List `tfsdk:"site"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_Site
 	Subnet            types.List `tfsdk:"subnet"`
-	IPRange           types.List `tfsdk:"iprange"`           //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_IPRange
-	GlobalIPRange     types.List `tfsdk:"globaliprange"`     //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_GlobalIPRange
-	NetworkInterface  types.List `tfsdk:"networkinterface"`  //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_NetworkInterface
-	SiteNetworkSubnet types.List `tfsdk:"sitenetworksubnet"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_SiteNetworkSubnet
-	FloatingSubnet    types.List `tfsdk:"floatingsubnet"`    //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_FloatingSubnet
-	User              types.List `tfsdk:"user"`              //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_User
-	UsersGroup        types.List `tfsdk:"usersgroup"`        //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_UsersGroup
-	Group             types.List `tfsdk:"group"`             //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_Group
-	SystemGroup       types.List `tfsdk:"systemgroup"`       //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_SystemGroup
+	IPRange           types.List `tfsdk:"ip_range"`            //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_IPRange
+	GlobalIPRange     types.List `tfsdk:"global_ip_range"`     //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_GlobalIPRange
+	NetworkInterface  types.List `tfsdk:"network_interface"`   //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_NetworkInterface
+	SiteNetworkSubnet types.List `tfsdk:"site_network_subnet"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_SiteNetworkSubnet
+	FloatingSubnet    types.List `tfsdk:"floating_subnet"`     //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_FloatingSubnet
+	User              types.List `tfsdk:"user"`                //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_User
+	UsersGroup        types.List `tfsdk:"users_group"`         //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_UsersGroup
+	Group             types.List `tfsdk:"group"`               //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_Group
+	SystemGroup       types.List `tfsdk:"system_group"`        //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_SystemGroup
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Source_Host struct {
@@ -243,7 +242,7 @@ type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Service_Standard struct {
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Service_Custom struct {
 	Port      types.List   `tfsdk:"port"`
-	PortRange types.Object `tfsdk:"portrange"` //*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Service_Custom_PortRange
+	PortRange types.Object `tfsdk:"port_range"` //*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Service_Custom_PortRange
 	Protocol  types.String `tfsdk:"protocol"`
 }
 
@@ -264,9 +263,9 @@ type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Event struct {
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert struct {
 	Enabled           types.Bool   `tfsdk:"enabled"`
 	Frequency         types.String `tfsdk:"frequency"`
-	SubscriptionGroup types.List   `tfsdk:"subscriptiongroup"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert_SubscriptionGroup
-	Webhook           types.List   `tfsdk:"webhook"`           //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert_Webhook
-	MailingList       types.List   `tfsdk:"mailinglist"`       //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert_MailingList
+	SubscriptionGroup types.List   `tfsdk:"subscription_group"` //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert_SubscriptionGroup
+	Webhook           types.List   `tfsdk:"webhook"`            //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert_Webhook
+	MailingList       types.List   `tfsdk:"mailing_list"`       //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert_MailingList
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert_SubscriptionGroup struct {
@@ -285,9 +284,9 @@ type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Tracking_Alert_MailingList
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Schedule struct {
-	ActiveOn        types.String `tfsdk:"activeon"`
-	CustomTimeframe types.Object `tfsdk:"customtimeframe"` //*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Schedule_CustomTimeframe
-	CustomRecurring types.Object `tfsdk:"customrecurring"` //*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Schedule_CustomRecurring
+	ActiveOn        types.String `tfsdk:"active_on"`
+	CustomTimeframe types.Object `tfsdk:"customtime_frame"` //*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Schedule_CustomTimeframe
+	CustomRecurring types.Object `tfsdk:"custom_recurring"` //*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Schedule_CustomRecurring
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Schedule_CustomTimeframe struct {
@@ -313,7 +312,7 @@ type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Exceptions struct {
 	Device      types.List `tfsdk:"device"`      //[]*Policy_Policy_InternetFirewall_Policy_Rules_Rule_Exceptions_Device
 	Destination types.List `tfsdk:"destination"` //Policy_Policy_InternetFirewall_Policy_Rules_Rule_Exceptions_Destination
 	// needs to be enum ConnectionOriginEnum
-	ConnectionOrigin types.String `tfsdk:"connectionorigin"`
+	ConnectionOrigin types.String `tfsdk:"connection_origin"`
 }
 
 type OperatingSystem types.String
@@ -338,7 +337,7 @@ type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Exceptions_Destination str
 	Fqdn      types.List `tfsdk:"fqdn"`
 	IP        types.List `tfsdk:"ip"`
 	Subnet    types.List `tfsdk:"subnet"`
-	RemoteAsn types.List `tfsdk:"remoteasn"`
+	RemoteAsn types.List `tfsdk:"remote_asn"`
 }
 
 type Policy_Policy_InternetFirewall_Policy_Rules_Rule_Section struct {
@@ -362,9 +361,6 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 						Description: "position",
 						Required:    false,
 						Optional:    true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
-						},
 					},
 					"ref": schema.StringAttribute{
 						Description: "ref",
@@ -452,7 +448,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 								Required:    false,
 								Optional:    true,
 							},
-							"iprange": schema.ListNestedAttribute{
+							"ip_range": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -470,7 +466,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"globaliprange": schema.ListNestedAttribute{
+							"global_ip_range": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -488,7 +484,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"networkinterface": schema.ListNestedAttribute{
+							"network_interface": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -506,7 +502,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"sitenetworksubnet": schema.ListNestedAttribute{
+							"site_network_subnet": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -524,7 +520,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"floatingsubnet": schema.ListNestedAttribute{
+							"floating_subnet": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -560,7 +556,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"usersgroup": schema.ListNestedAttribute{
+							"users_group": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -596,7 +592,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"systemgroup": schema.ListNestedAttribute{
+							"system_group": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -616,7 +612,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 							},
 						},
 					},
-					"connectionorigin": schema.StringAttribute{
+					"connection_origin": schema.StringAttribute{
 						Description: "connectionOrigin",
 						Optional:    true,
 						Required:    false,
@@ -645,7 +641,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 						Optional:    true,
 						// Required:    true,
 					},
-					"deviceos": schema.ListAttribute{
+					"device_os": schema.ListAttribute{
 						ElementType: types.StringType,
 						Description: "deviceOS",
 						Optional:    true,
@@ -673,7 +669,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"customapp": schema.ListNestedAttribute{
+							"custom_app": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -691,7 +687,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"appcategory": schema.ListNestedAttribute{
+							"app_category": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -709,7 +705,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"customcategory": schema.ListNestedAttribute{
+							"custom_category": schema.ListNestedAttribute{
 								Description: "customCategory",
 								Required:    false,
 								Optional:    true,
@@ -728,7 +724,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"sanctionedappscategory": schema.ListNestedAttribute{
+							"sanctioned_apps_category": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -788,7 +784,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 								Required:    false,
 								Optional:    true,
 							},
-							"iprange": schema.ListNestedAttribute{
+							"ip_range": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -806,7 +802,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"globaliprange": schema.ListNestedAttribute{
+							"global_ip_range": schema.ListNestedAttribute{
 								Required: false,
 								Optional: true,
 								NestedObject: schema.NestedAttributeObject{
@@ -824,7 +820,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 									},
 								},
 							},
-							"remoteasn": schema.ListAttribute{
+							"remote_asn": schema.ListAttribute{
 								ElementType: types.StringType,
 								Description: "remoteAsn",
 								Required:    false,
@@ -837,8 +833,8 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 						Optional: true,
 						Attributes: map[string]schema.Attribute{
 							"standard": schema.ListNestedAttribute{
-								Required: false,
-								Optional: true,
+								Required: true,
+								Optional: false,
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
 										"by": schema.StringAttribute{
@@ -887,7 +883,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 										Description: "frequency",
 										Required:    true,
 									},
-									"subscriptiongroup": schema.ListAttribute{
+									"subscription_group": schema.ListAttribute{
 										ElementType: types.StringType,
 										Description: "subscriptionGroup",
 										Required:    false,
@@ -899,7 +895,7 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 										Required:    false,
 										Optional:    true,
 									},
-									"mailinglist": schema.ListAttribute{
+									"mailing_list": schema.ListAttribute{
 										ElementType: types.StringType,
 										Description: "mailingList",
 										Required:    false,
@@ -912,17 +908,17 @@ func (r *internetFwPolicyResource) Schema(_ context.Context, _ resource.SchemaRe
 					"schedule": schema.SingleNestedAttribute{
 						Optional: true,
 						Attributes: map[string]schema.Attribute{
-							"activeon": schema.StringAttribute{
+							"active_on": schema.StringAttribute{
 								Description: "activeOn",
 								Required:    false,
 								Optional:    true,
 							},
-							"customtimeframe": schema.StringAttribute{
+							"custom_timeframe": schema.StringAttribute{
 								Description: "customtimeframe",
 								Required:    false,
 								Optional:    true,
 							},
-							"customrecurring": schema.StringAttribute{
+							"custom_recurring": schema.StringAttribute{
 								Description: "customrecurring",
 								Required:    false,
 								Optional:    true,
@@ -1461,6 +1457,17 @@ func (r *internetFwPolicyResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
+	// check for errors
+	if policyChange.Policy.InternetFirewall.AddRule.Status != "SUCCESS" {
+		for _, item := range policyChange.Policy.InternetFirewall.AddRule.GetErrors() {
+			resp.Diagnostics.AddError(
+				"API Error Creating Resource",
+				fmt.Sprintf("%s : %s", *item.ErrorCode, *item.ErrorMessage),
+			)
+		}
+		return
+	}
+
 	//publishing new rule
 	tflog.Info(ctx, "publishing new rule")
 	publishDataIfEnabled := &cato_models.PolicyPublishRevisionInput{}
@@ -1488,6 +1495,7 @@ func (r *internetFwPolicyResource) Create(ctx context.Context, req resource.Crea
 }
 
 func (r *internetFwPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+
 }
 
 func (r *internetFwPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -1503,7 +1511,7 @@ func (r *internetFwPolicyResource) Update(ctx context.Context, req resource.Upda
 	input := cato_models.InternetFirewallUpdateRuleInput{
 		Rule: &cato_models.InternetFirewallUpdateRuleDataInput{
 			Source: &cato_models.InternetFirewallSourceUpdateInput{
-				// IP:                []string{},
+				IP:                []string{},
 				Host:              []*cato_models.HostRefInput{},
 				Site:              []*cato_models.SiteRefInput{},
 				Subnet:            []string{},
@@ -2029,12 +2037,23 @@ func (r *internetFwPolicyResource) Update(ctx context.Context, req resource.Upda
 	tflog.Info(ctx, string(b))
 
 	//creating new rule
-	_, err := r.info.catov2.PolicyInternetFirewallUpdateRule(ctx, mutationInput, input, r.info.AccountId)
+	updateRule, err := r.info.catov2.PolicyInternetFirewallUpdateRule(ctx, mutationInput, input, r.info.AccountId)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Catov2 API PolicyInternetFirewallUpdateRule error",
 			err.Error(),
 		)
+		return
+	}
+
+	// check for errors
+	if updateRule.Policy.InternetFirewall.UpdateRule.Status != "SUCCESS" {
+		for _, item := range updateRule.Policy.InternetFirewall.UpdateRule.GetErrors() {
+			resp.Diagnostics.AddError(
+				"API Error Creating Resource",
+				fmt.Sprintf("%s : %s", *item.ErrorCode, *item.ErrorMessage),
+			)
+		}
 		return
 	}
 
